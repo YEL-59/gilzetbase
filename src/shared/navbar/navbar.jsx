@@ -3,6 +3,7 @@ import { Link, NavLink } from "react-router";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import AuthDialog from "@/pages/auth/AuthDialog";
 
 const navLinks = [
   { name: "Home", path: "/" },
@@ -63,9 +64,7 @@ export default function Navbar() {
             </Button>
           </Link>
 
-          <Button variant="outline" className="border-gray-600 text-gray-300">
-            Create an account
-          </Button>
+          <AuthDialog />
 
           <Button variant="secondary">🌐 EN</Button>
         </div>
