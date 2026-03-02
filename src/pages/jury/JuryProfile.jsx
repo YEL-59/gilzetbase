@@ -200,8 +200,8 @@ export default function JuryProfile() {
                             <button
                                 onClick={() => setActiveTab("profile")}
                                 className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition-all ${activeTab === "profile"
-                                        ? "bg-[#d4af37] text-white shadow-lg"
-                                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                    ? "bg-[#d4af37] text-white shadow-lg"
+                                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                     }`}
                             >
                                 Profile Info
@@ -209,8 +209,8 @@ export default function JuryProfile() {
                             <button
                                 onClick={() => setActiveTab("security")}
                                 className={`px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase transition-all ${activeTab === "security"
-                                        ? "bg-[#d4af37] text-white shadow-lg"
-                                        : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                                    ? "bg-[#d4af37] text-white shadow-lg"
+                                    : "bg-gray-100 text-gray-500 hover:bg-gray-200"
                                     }`}
                             >
                                 Security Settings
@@ -345,7 +345,7 @@ export default function JuryProfile() {
                                 </div>
                             </Card>
 
-                            <div className="bg-gradient-to-br from-[#1a1c2c] to-[#4a192c] rounded-[24px] p-8 text-white shadow-xl relative overflow-hidden group">
+                            {/* <div className="bg-gradient-to-br from-[#1a1c2c] to-[#4a192c] rounded-[24px] p-8 text-white shadow-xl relative overflow-hidden group">
                                 <div className="relative z-10">
                                     <div className="bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center mb-6 border border-white/20">
                                         <ShieldCheck className="text-[#d4af37]" size={24} />
@@ -358,9 +358,9 @@ export default function JuryProfile() {
                                         VERIFIED EXPERT
                                     </div>
                                 </div>
-                                {/* Decorative background */}
+                               
                                 <div className="absolute top-0 right-0 -mr-16 -mt-16 w-32 h-32 bg-[#d4af37]/20 rounded-full blur-3xl group-hover:bg-[#d4af37]/40 transition-all"></div>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 ) : (
