@@ -83,7 +83,7 @@ const MySubmissions = () => {
               </Link>
             </div>
           </div>
-          <div className="flex flex-col items-end gap-2">
+          {/* <div className="flex flex-col items-end gap-2">
             <div className="bg-amber-100 border border-amber-200 rounded-lg p-3 flex items-center gap-4">
               <div>
                 <p className="text-xs text-amber-800 font-medium uppercase tracking-wider">
@@ -98,11 +98,11 @@ const MySubmissions = () => {
                 Upgrade Plan
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {stats.map((stat, index) => (
             <Card
               key={index}
@@ -112,11 +112,11 @@ const MySubmissions = () => {
               <p className={`text-3xl font-bold ${stat.color}`}>{stat.value}</p>
             </Card>
           ))}
-          <Card className="bg-gradient-to-br from-amber-500 to-amber-600 p-6 rounded-lg shadow-md border-none text-white">
+          {/* <Card className="bg-gradient-to-br from-amber-500 to-amber-600 p-6 rounded-lg shadow-md border-none text-white">
             <p className="text-sm text-amber-100 mb-2">Credits Left</p>
             <p className="text-3xl font-bold text-white">2</p>
             <p className="text-xs text-amber-100 mt-1">out of 5 total</p>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Search Bar */}
