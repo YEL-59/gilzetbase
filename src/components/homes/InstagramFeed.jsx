@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGetInstagramFeed } from "@/hooks/instagramFeed.hook";
-import { Instagram, Loader2 } from "lucide-react";
+import { Instagram, Loader2, Play } from "lucide-react";
 
 const InstagramFeed = () => {
   const { data: instagramFeed, isLoading, isError } = useGetInstagramFeed();
@@ -73,13 +73,39 @@ const InstagramFeed = () => {
             <Card
               key={post.id}
               className=" p-0 group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+              onMouseEnter={(e) => {
+                const video = e.currentTarget.querySelector("video");
+                if (video) video.play().catch(() => { });
+              }}
+              onMouseLeave={(e) => {
+                const video = e.currentTarget.querySelector("video");
+                if (video) {
+                  video.pause();
+                  video.currentTime = 0;
+                }
+              }}
             >
-              <div className="relative aspect-square overflow-hidden">
-                <img
-                  src={post.image || post.video}
-                  alt={post.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
+              <div className="relative aspect-square overflow-hidden bg-gray-200">
+                {post.content_type === "video" ? (
+                  <>
+                    <video
+                      src={post.video}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      muted
+                      loop
+                      playsInline
+                    />
+                    <div className="absolute top-4 right-4 z-10 p-2 bg-black/40 backdrop-blur-md rounded-full text-white opacity-80 group-hover:opacity-0 transition-opacity duration-300">
+                      <Play size={16} fill="currentColor" />
+                    </div>
+                  </>
+                ) : (
+                  <img
+                    src={post.image}
+                    alt={post.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                )}
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
 
@@ -90,8 +116,8 @@ const InstagramFeed = () => {
                       <AvatarFallback>AV</AvatarFallback>
                     </Avatar>
 
-                    <div>
-                      <p className="font-[Inter] text-[14px] not-italic font-medium leading-[18px] text-[#FEFEFE]">
+                    <div className="overflow-hidden">
+                      <p className="font-[Inter] text-[14px] not-italic font-medium leading-[18px] text-[#FEFEFE] truncate">
                         {post.title}
                       </p>
                       <p className="text-white/80 text-xs mt-0.5">
@@ -108,8 +134,8 @@ const InstagramFeed = () => {
                     href={post.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hover:scale-110 transition-transform"
-                    onClick={(e) => e.stopPropagation()} // Prevent card click if we add one later
+                    className="hover:scale-110 transition-transform flex-shrink-0"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <Instagram className="h-6 w-6 text-white opacity-90" />
                   </a>
