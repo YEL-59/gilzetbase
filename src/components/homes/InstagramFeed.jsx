@@ -1,47 +1,36 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Instagram } from "lucide-react";
+import { useGetInstagramFeed } from "@/hooks/instagramFeed.hook";
+import { Instagram, Loader2 } from "lucide-react";
 
 const InstagramFeed = () => {
-  const posts = [
-    {
-      id: "1",
-      imageUrl:
-        "https://images.pexels.com/photos/1839919/pexels-photo-1839919.jpeg?auto=compress&cs=tinysrgb&w=800",
-      caption: "ART VISION AWARDS",
-      timestamp: "a month ago",
-      profileImage:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200",
-    },
-    {
-      id: "2",
-      imageUrl:
-        "https://images.pexels.com/photos/1839919/pexels-photo-1839919.jpeg?auto=compress&cs=tinysrgb&w=800",
-      caption: "ART VISION AWARDS",
-      timestamp: "a month ago",
-      profileImage:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200",
-    },
-    {
-      id: "3",
-      imageUrl:
-        "https://images.pexels.com/photos/1839919/pexels-photo-1839919.jpeg?auto=compress&cs=tinysrgb&w=800",
-      caption: "ART VISION AWARDS",
-      timestamp: "a month ago",
-      profileImage:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200",
-    },
-    {
-      id: "4",
-      imageUrl:
-        "https://images.pexels.com/photos/1839919/pexels-photo-1839919.jpeg?auto=compress&cs=tinysrgb&w=800",
-      caption: "ART VISION AWARDS",
-      timestamp: "a month ago",
-      profileImage:
-        "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200",
-    },
-  ];
+  const { data: instagramFeed, isLoading, isError } = useGetInstagramFeed();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-20 min-h-[400px]">
+        <Loader2 className="h-10 w-10 animate-spin text-[#CAA844]" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center p-20 min-h-[400px] text-red-500">
+        Error loading feed
+      </div>
+    );
+  }
+
+  const feedData = instagramFeed?.data?.[0];
+  if (!feedData) return null;
+
+  const profileImageUrl = feedData.profile;
+  const postsCount = feedData.instagram_contents?.length || 0;
+  const posts = [...(feedData.instagram_contents || [])].sort(
+    (a, b) => a.order - b.order
+  );
 
   return (
     <section className="w-full bg-[#F7F6F3] py-25 px-4 sm:px-6 lg:px-8">
@@ -50,23 +39,31 @@ const InstagramFeed = () => {
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-4">
             <Avatar className="h-14 w-14 border-2 border-none shadow-md">
-              <AvatarImage
-                src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=200"
-                alt="Profile"
-              />
-              <AvatarFallback>LI</AvatarFallback>
+              <AvatarImage src={profileImageUrl} alt={feedData.name || "Profile"} />
+              <AvatarFallback>
+                {feedData.name ? feedData.name.substring(0, 2).toUpperCase() : "IF"}
+              </AvatarFallback>
             </Avatar>
 
             <div>
               <h2 className="font-[Inter] text-[32px] not-italic font-medium leading-[40px] text-[#0A0A0A]">
                 Latest on Instagram
               </h2>
-              <p className="text-sm text-gray-600 mt-0.5">61 posts</p>
+              <p className="text-sm text-gray-600 mt-0.5">{postsCount} posts</p>
             </div>
           </div>
 
-          <Button className="bg-[#CAA844] hover:bg-[#c69563] text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200">
-            Follow us
+          <Button
+            asChild
+            className="bg-[#CAA844] hover:bg-[#c69563] text-white font-medium px-6 py-2 h-auto shadow-sm transition-all duration-200 cursor-pointer"
+          >
+            <a
+              href={feedData.url || "https://www.instagram.com/"}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Follow us
+            </a>
           </Button>
         </div>
 
@@ -75,12 +72,12 @@ const InstagramFeed = () => {
           {posts.map((post) => (
             <Card
               key={post.id}
-              className=" p-0 roup relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
+              className=" p-0 group relative overflow-hidden rounded-xl border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer"
             >
               <div className="relative aspect-square overflow-hidden">
                 <img
-                  src={post.imageUrl}
-                  alt={post.caption}
+                  src={post.image || post.video}
+                  alt={post.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
 
@@ -89,21 +86,33 @@ const InstagramFeed = () => {
                 <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 border-2 border-none shadow-md">
-                      <AvatarImage src={post.profileImage} alt="Profile" />
+                      <AvatarImage src={profileImageUrl} alt="Profile" />
                       <AvatarFallback>AV</AvatarFallback>
                     </Avatar>
 
                     <div>
                       <p className="font-[Inter] text-[14px] not-italic font-medium leading-[18px] text-[#FEFEFE]">
-                        {post.caption}
+                        {post.title}
                       </p>
                       <p className="text-white/80 text-xs mt-0.5">
-                        {post.timestamp}
+                        {new Date(post.created_at).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
                       </p>
                     </div>
                   </div>
 
-                  <Instagram className="h-6 w-6 text-white opacity-90" />
+                  <a
+                    href={post.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:scale-110 transition-transform"
+                    onClick={(e) => e.stopPropagation()} // Prevent card click if we add one later
+                  >
+                    <Instagram className="h-6 w-6 text-white opacity-90" />
+                  </a>
                 </div>
               </div>
             </Card>
