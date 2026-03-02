@@ -7,12 +7,35 @@ import {
   Share2,
   Layout,
   Globe,
+  Loader2,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+  useGetPromotionalBanners,
+  useGetReferralLink,
+  useGetSocialAssets,
+} from "@/hooks/affiliate.hook";
 
 export default function AffiliatePromotions() {
   const [copied, setCopied] = useState(false);
-  const affiliateLink = "https://ava.art/ref/johndoe77";
+
+  const {
+    data: referralData,
+    isLoading: isReferralLoading,
+    isError: isReferralError,
+  } = useGetReferralLink();
+  const {
+    data: bannersData,
+    isLoading: isBannersLoading,
+    isError: isBannersError,
+  } = useGetPromotionalBanners();
+  const {
+    data: socialAssetsData,
+    isLoading: isSocialLoading,
+    isError: isSocialError,
+  } = useGetSocialAssets();
+
+  const affiliateLink = referralData?.data?.referral_link || "";
 
   const handleCopyScript = (imgUrl) => {
     const script = `<a href="${affiliateLink}" target="_blank" rel="noopener noreferrer">\n  <img src="${imgUrl}" alt="Promotional Banner" style="width:100%; max-width:100%; border-radius: 8px;" />\n</a>`;
@@ -21,28 +44,48 @@ export default function AffiliatePromotions() {
   };
 
   const handleCopy = () => {
+    if (!affiliateLink) return;
     navigator.clipboard.writeText(affiliateLink);
     setCopied(true);
     toast.success("Referral link copied!");
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = (url, filename) => {
-    toast.loading("Preparing download...", { duration: 1000 });
-    fetch(url)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const blobUrl = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = filename || "marketing-asset.jpg";
-        document.body.appendChild(link);
-        link.click();
+  const handleDownload = async (url, filename) => {
+    const toastId = toast.loading("Preparing download...");
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Network response was not ok");
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = filename || "marketing-asset.jpg";
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      setTimeout(() => {
         document.body.removeChild(link);
-        toast.success("Download started!");
-      })
-      .catch(() => toast.error("Download failed. Please try again."));
+        window.URL.revokeObjectURL(blobUrl);
+      }, 100);
+
+      toast.success("Download started!", { id: toastId });
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Direct download blocked by browser security. Opening in new tab...", {
+        id: toastId,
+        duration: 4000
+      });
+      // Fallback: Open in new tab so user can manually save
+      window.open(url, "_blank");
+    }
   };
+
+  const banners = bannersData?.data?.data || [];
+  const socialAssets = socialAssetsData?.data?.data || [];
 
   return (
     <div className="space-y-8 pb-12">
@@ -68,19 +111,28 @@ export default function AffiliatePromotions() {
           via this link within 30 days will be attributed to your account.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch">
-          <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 font-mono text-sm text-gray-700 flex items-center overflow-hidden">
-            <span className="truncate">{affiliateLink}</span>
+        {isReferralLoading ? (
+          <div className="flex items-center gap-2 text-gray-500">
+            <Loader2 className="animate-spin" size={18} />
+            <span>Loading referral link...</span>
           </div>
-          <button
-            onClick={handleCopy}
-            className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2
-                            ${copied ? "bg-green-600 text-white" : "bg-[#d4af37] text-black hover:bg-[#bfa030]"}`}
-          >
-            {copied ? <Check size={18} /> : <Copy size={18} />}
-            {copied ? "Copied" : "Copy Link"}
-          </button>
-        </div>
+        ) : isReferralError ? (
+          <div className="text-red-500 text-sm">Failed to load referral link.</div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 font-mono text-sm text-gray-700 flex items-center overflow-hidden">
+              <span className="truncate">{affiliateLink}</span>
+            </div>
+            <button
+              onClick={handleCopy}
+              className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2
+                                ${copied ? "bg-green-600 text-white" : "bg-[#d4af37] text-black hover:bg-[#bfa030]"}`}
+            >
+              {copied ? <Check size={18} /> : <Copy size={18} />}
+              {copied ? "Copied" : "Copy Link"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 🖼 Banner Ads */}
@@ -92,66 +144,66 @@ export default function AffiliatePromotions() {
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[
-            {
-              title: "Standard Leaderboard",
-              size: "728 x 90",
-              type: "Web Header",
-              img: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?q=80&w=2070&auto=format&fit=crop",
-            },
-            {
-              title: "Medium Rectangle",
-              size: "300 x 250",
-              type: "Sidebar Ad",
-              img: "https://images.unsplash.com/photo-1492691523567-6170c8175363?q=80&w=2070&auto=format&fit=crop",
-            },
-          ].map((banner, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group flex flex-col"
-            >
-              <div className="aspect-video relative bg-gray-100 flex items-center justify-center overflow-hidden">
-                <img
-                  src={banner.img}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  alt=""
-                />
-                <div className="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-bold px-2 py-1 rounded">
-                  {banner.size}
+        {isBannersLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-[#d4af37]" size={40} />
+          </div>
+        ) : isBannersError ? (
+          <div className="text-center py-12 text-red-500">
+            Failed to load promotional banners.
+          </div>
+        ) : banners.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            No banners available at the moment.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {banners.map((banner) => (
+              <div
+                key={banner.id}
+                className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden group flex flex-col"
+              >
+                <div className="aspect-video relative bg-gray-100 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={banner.image}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    alt={banner.title}
+                  />
+
                 </div>
-              </div>
-              <div className="p-4 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-900">
-                      {banner.title}
-                    </h4>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">
-                      {banner.type}
-                    </p>
+                <div className="p-4 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-sm font-bold text-gray-900">
+                        {banner.title}
+                      </h4>
+
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">
+                        {banner.sub_title}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        handleDownload(banner.image, `banner-${banner.id}.jpg`)
+                      }
+                      className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-[#d4af37] hover:text-black transition-all"
+                      title="Download Image"
+                    >
+                      <Download size={18} />
+                    </button>
                   </div>
-                  <button
-                    onClick={() =>
-                      handleDownload(banner.img, `banner-${i}.jpg`)
-                    }
-                    className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-[#d4af37] hover:text-black transition-all"
-                    title="Download Image"
+                  {/* <button
+                    onClick={() => handleCopyScript(banner.image)}
+                    className="w-full mt-auto py-2.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-black transition-colors flex items-center justify-center gap-2"
                   >
-                    <Download size={18} />
-                  </button>
+                    <Copy size={14} />
+                    <span>Copy Embed Script</span>
+                  </button> */}
                 </div>
-                {/* <button
-                                    onClick={() => handleCopyScript(banner.img)}
-                                    className="w-full mt-auto py-2.5 bg-gray-900 text-white text-xs font-bold rounded-lg hover:bg-black transition-colors flex items-center justify-center gap-2"
-                                >
-                                    <Copy size={14} />
-                                    <span>Copy Embed Script</span>
-                                </button> */}
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 📱 Social Media */}
@@ -163,46 +215,57 @@ export default function AffiliatePromotions() {
           </h3>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            "https://images.unsplash.com/photo-1493863641943-9b68992a8d07?q=80&w=2058&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1516035069341-349198672877?q=80&w=1964&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1976&auto=format&fit=crop",
-            "https://images.unsplash.com/photo-1481349518771-20055b2a7b24?q=80&w=2139&auto=format&fit=crop",
-          ].map((url, i) => (
-            <div
-              key={i}
-              className="group relative aspect-[4/5] rounded-xl overflow-hidden border border-gray-100 shadow-sm flex items-center justify-center"
-            >
-              <img
-                src={url}
-                className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                alt=""
-              />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4 p-4 text-center">
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleDownload(url, `social-${i}.jpg`)}
-                    className="p-3 bg-white rounded-full text-black hover:bg-[#d4af37] transition-all transform hover:scale-110"
-                    title="Download"
-                  >
-                    <Download size={20} />
-                  </button>
-                  <button
-                    onClick={() => handleCopyScript(url)}
-                    className="p-3 bg-white rounded-full text-black hover:bg-[#d4af37] transition-all transform hover:scale-110"
-                    title="Copy Link"
-                  >
-                    <Share2 size={20} />
-                  </button>
+        {isSocialLoading ? (
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-[#d4af37]" size={40} />
+          </div>
+        ) : isSocialError ? (
+          <div className="text-center py-12 text-red-500">
+            Failed to load social media assets.
+          </div>
+        ) : socialAssets.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            No social assets available at the moment.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {socialAssets.map((asset) => (
+              <div
+                key={asset.id}
+                className="group relative aspect-[4/5] rounded-xl overflow-hidden border border-gray-100 shadow-sm flex items-center justify-center"
+              >
+                <img
+                  src={asset.image}
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  alt={asset.title}
+                />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-4 p-4 text-center">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() =>
+                        handleDownload(asset.image, `social-${asset.id}.jpg`)
+                      }
+                      className="p-3 bg-white rounded-full text-black hover:bg-[#d4af37] transition-all transform hover:scale-110"
+                      title="Download"
+                    >
+                      <Download size={20} />
+                    </button>
+                    <button
+                      onClick={() => handleCopyScript(asset.image)}
+                      className="p-3 bg-white rounded-full text-black hover:bg-[#d4af37] transition-all transform hover:scale-110"
+                      title="Copy Link"
+                    >
+                      <Share2 size={20} />
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest">
+                    {asset.platform || "Social Asset"}
+                  </span>
                 </div>
-                <span className="text-[10px] text-white/80 font-bold uppercase tracking-widest">
-                  Story / Post Size
-                </span>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
